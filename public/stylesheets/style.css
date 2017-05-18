@@ -4,6 +4,17 @@ body {
     margin: 0;
 }
 
+#imgCredits{
+        border: 2px solid black;
+        margin: 10px 10px 5px 5px;
+        padding: 0;
+        width: 250px;
+        height: 250px;
+        border-radius: 50%;
+        overflow: hidden;
+        vertical-align: middle;
+}
+
 #page {
     display: flex;
     flex-flow: row wrap;
