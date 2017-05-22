@@ -187,3 +187,80 @@ exports.check = function (req, res, next) {
         answer: answer
     });
 };
+
+
+
+function newRamdon(maxP){
+    console.log("generando "+maxP);
+    return Math.floor(Math.random()*(maxP));
+}
+
+
+function randomQuiz(){
+    rndmInex=newRamdon(allQuiz.length);
+    return createCont (allQuiz[rndmInex].id,allQuiz[rndmInex].question,allQuiz[rndmInex].answer);
+}
+
+function createCont(id,question,answer){
+    return {"id":id, "question":question,"answer":answer};
+
+}
+// GET /quizzes/randomplay
+var score=0;
+var result=true ;
+var allQuiz=[] ;
+var rndmInex ;
+exports.randomplay = function ( req, res, next) {
+	var quiz;
+	if (! result || ! allQuiz.length){ // hemos fallado o hemos acertado todos
+      score=0;
+      while (allQuiz.length){
+        allQuiz.pop();
+    }
+    models.Quiz.findAll()
+    .then(function(iuiz){
+      for (var i in iuiz){
+        allQuiz.push(createCont(iuiz[i].id,iuiz[i].question,iuiz[i].answer));
+    }
+//    console.log("i-----"+ allQuiz.length);
+  //  console.log("r-----"+randomInex);
+    randomRender(req,res,next,randomQuiz());
+})
+}else{
+  randomRender(req,res,next,randomQuiz());
+}
+
+};
+
+function randomRender (req, res ,next,quiz){
+ res.render('quizzes/random_play.ejs', {
+    quiz: quiz,
+    score: score,
+    answer: quiz.answer
+});
+}
+// GET /quizzes/randomcheck
+
+exports.randomcheck = function ( req, res, next) {
+	var answer  = req.query.answer || "";
+	result      = answer.toLowerCase().trim() === req.quiz.answer.toLowerCase().trim();
+	score       += result ? 1 :0 ;
+    if (result){
+        allQuiz.splice(rndmInex,1);
+    } 
+
+//console.log ("/////////"+answer);
+//console.log ("---------"+req.quiz.answer.toLowerCase());
+//console.log ("+++++++++"+result);
+if (allQuiz.length){
+
+res.render('quizzes/random_result.ejs', {
+  quiz:   req.quiz,
+  score:  score,
+  answer: answer,
+  result: result	
+});
+} else {
+   res.render('quizzes/random_nomore.ejs', {score: score});
+}
+};

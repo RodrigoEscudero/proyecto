@@ -27,4 +27,13 @@ var sequelize = new Sequelize(url, {storage: storage});
 var Quiz = sequelize.import(path.join(__dirname, 'quiz'));
 
 
+sequelize.sync()
+   .then(function(){
+    console.log('pues que bien');
+})
+.catch(function (error)  {
+   console.log("error con bbdd :",error);
+   process.exit(1);
+});
+
 exports.Quiz = Quiz; // exportar definición de tabla Quiz
