@@ -4,87 +4,87 @@ var Sequelize = require('sequelize');
 var paginate = require('../helpers/paginate').paginate;
 
 // Autoload el quiz asociado a :quizId
-exports.load = function (req, res, next, quizId) {
+exports.load = function(req, res, next, quizId) {
 
     models.Quiz.findById(quizId)
-    .then(function (quiz) {
-        if (quiz) {
-            req.quiz = quiz;
-            next();
-        } else {
-            throw new Error('No existe ningún quiz con id=' + quizId);
-        }
-    })
-    .catch(function (error) {
-        next(error);
-    });
+        .then(function(quiz) {
+            if (quiz) {
+                req.quiz = quiz;
+                next();
+            } else {
+                throw new Error('No existe ningún quiz con id=' + quizId);
+            }
+        })
+        .catch(function(error) {
+            next(error);
+        });
 };
 
 
 // GET /quizzes
-exports.index = function (req, res, next) {
+exports.index = function(req, res, next) {
 
     var countOptions = {};
 
     // Busquedas:
     var search = req.query.search || '';
     if (search) {
-        var search_like = "%" + search.replace(/ +/g,"%") + "%";
+        var search_like = "%" + search.replace(/ +/g, "%") + "%";
 
-        countOptions.where = {question: { $like: search_like }};
+        countOptions.where = { question: { $like: search_like } };
     }
 
     models.Quiz.count(countOptions)
-    .then(function (count) {
+        .then(function(count) {
 
-        // Paginacion:
+            // Paginacion:
 
-        var items_per_page = 10;
+            var items_per_page = 10;
 
-        // La pagina a mostrar viene en la query
-        var pageno = parseInt(req.query.pageno) || 1;
+            // La pagina a mostrar viene en la query
+            var pageno = parseInt(req.query.pageno) || 1;
 
-        // Crear un string con el HTML que pinta la botonera de paginacion.
-        // Lo añado como una variable local de res para que lo pinte el layout de la aplicacion.
-        res.locals.paginate_control = paginate(count, items_per_page, pageno, req.url);
+            // Crear un string con el HTML que pinta la botonera de paginacion.
+            // Lo añado como una variable local de res para que lo pinte el layout de la aplicacion.
+            res.locals.paginate_control = paginate(count, items_per_page, pageno, req.url);
 
-        var findOptions = countOptions;
+            var findOptions = countOptions;
 
-        findOptions.offset = items_per_page * (pageno - 1);
-        findOptions.limit = items_per_page;
+            findOptions.offset = items_per_page * (pageno - 1);
+            findOptions.limit = items_per_page;
 
-        return models.Quiz.findAll(findOptions);
-    })
-    .then(function (quizzes) {
-        res.render('quizzes/index.ejs', {
-            quizzes: quizzes,
-            search: search
+            return models.Quiz.findAll(findOptions);
+        })
+        .then(function(quizzes) {
+            res.render('quizzes/index.ejs', {
+                quizzes: quizzes,
+                search: search
+            });
+        })
+        .catch(function(error) {
+            next(error);
         });
-    })
-    .catch(function (error) {
-        next(error);
-    });
 };
 
 
 // GET /quizzes/:quizId
-exports.show = function (req, res, next) {
+exports.show = function(req, res, next) {
 
-    res.render('quizzes/show', {quiz: req.quiz});
+    res.render('quizzes/show', { quiz: req.quiz });
 };
 
 
 // GET /quizzes/new
-exports.new = function (req, res, next) {
+exports.new = function(req, res, next) {
 
-    var quiz = {question: "", answer: ""};
+    var quiz = { question: "", answer: "" };
 
-    res.render('quizzes/new', {quiz: quiz});
+    res.render('quizzes/new', { quiz: quiz });
 };
 
 
 // POST /quizzes/create
-exports.create = function (req, res, next) {
+exports.create = function(req, res, next) {
 
     var quiz = models.Quiz.build({
         question: req.body.question,
@@ -92,78 +92,78 @@ exports.create = function (req, res, next) {
     });
 
     // guarda en DB los campos pregunta y respuesta de quiz
-    quiz.save({fields: ["question", "answer"]})
-    .then(function (quiz) {
-        req.flash('success', 'Quiz creado con éxito.');
-        res.redirect('/quizzes/' + quiz.id);
-    })
-    .catch(Sequelize.ValidationError, function (error) {
+    quiz.save({ fields: ["question", "answer"] })
+        .then(function(quiz) {
+            req.flash('success', 'Quiz creado con éxito.');
+            res.redirect('/quizzes/' + quiz.id);
+        })
+        .catch(Sequelize.ValidationError, function(error) {
 
-        req.flash('error', 'Errores en el formulario:');
-        for (var i in error.errors) {
-            req.flash('error', error.errors[i].value);
-        }
+            req.flash('error', 'Errores en el formulario:');
+            for (var i in error.errors) {
+                req.flash('error', error.errors[i].value);
+            }
 
-        res.render('quizzes/new', {quiz: quiz});
-    })
-    .catch(function (error) {
-        req.flash('error', 'Error al crear un Quiz: ' + error.message);
-        next(error);
-    });
+            res.render('quizzes/new', { quiz: quiz });
+        })
+        .catch(function(error) {
+            req.flash('error', 'Error al crear un Quiz: ' + error.message);
+            next(error);
+        });
 };
 
 
 // GET /quizzes/:quizId/edit
-exports.edit = function (req, res, next) {
+exports.edit = function(req, res, next) {
 
-    res.render('quizzes/edit', {quiz: req.quiz});
+    res.render('quizzes/edit', { quiz: req.quiz });
 };
 
 
 // PUT /quizzes/:quizId
-exports.update = function (req, res, next) {
+exports.update = function(req, res, next) {
 
     req.quiz.question = req.body.question;
     req.quiz.answer = req.body.answer;
 
-    req.quiz.save({fields: ["question", "answer"]})
-    .then(function (quiz) {
-        req.flash('success', 'Quiz editado con éxito.');
-        res.redirect('/quizzes/' + req.quiz.id);
-    })
-    .catch(Sequelize.ValidationError, function (error) {
+    req.quiz.save({ fields: ["question", "answer"] })
+        .then(function(quiz) {
+            req.flash('success', 'Quiz editado con éxito.');
+            res.redirect('/quizzes/' + req.quiz.id);
+        })
+        .catch(Sequelize.ValidationError, function(error) {
 
-        req.flash('error', 'Errores en el formulario:');
-        for (var i in error.errors) {
-            req.flash('error', error.errors[i].value);
-        }
+            req.flash('error', 'Errores en el formulario:');
+            for (var i in error.errors) {
+                req.flash('error', error.errors[i].value);
+            }
 
-        res.render('quizzes/edit', {quiz: req.quiz});
-    })
-    .catch(function (error) {
-        req.flash('error', 'Error al editar el Quiz: ' + error.message);
-        next(error);
-    });
+            res.render('quizzes/edit', { quiz: req.quiz });
+        })
+        .catch(function(error) {
+            req.flash('error', 'Error al editar el Quiz: ' + error.message);
+            next(error);
+        });
 };
 
 
 // DELETE /quizzes/:quizId
-exports.destroy = function (req, res, next) {
+exports.destroy = function(req, res, next) {
 
     req.quiz.destroy()
-    .then(function () {
-        req.flash('success', 'Quiz borrado con éxito.');
-        res.redirect('/quizzes');
-    })
-    .catch(function (error) {
-        req.flash('error', 'Error al editar el Quiz: ' + error.message);
-        next(error);
-    });
+        .then(function() {
+            req.flash('success', 'Quiz borrado con éxito.');
+            res.redirect('/quizzes');
+        })
+        .catch(function(error) {
+            req.flash('error', 'Error al editar el Quiz: ' + error.message);
+            next(error);
+        });
 };
 
 
 // GET /quizzes/:quizId/play
-exports.play = function (req, res, next) {
+exports.play = function(req, res, next) {
 
     var answer = req.query.answer || '';
 
@@ -175,7 +175,7 @@ exports.play = function (req, res, next) {
 
 
 // GET /quizzes/:quizId/check
-exports.check = function (req, res, next) {
+exports.check = function(req, res, next) {
 
     var answer = req.query.answer || "";
 
@@ -190,77 +190,103 @@ exports.check = function (req, res, next) {
 
 
 
-function newRamdon(maxP){
-    console.log("generando "+maxP);
-    return Math.floor(Math.random()*(maxP));
+function newRamdon(maxP) {                          // random índice válido
+    ret = Math.floor(Math.random() * maxP);
+    //console.log("generando [" + maxP +"]["+ret+"]");
+
+    return ret;
 }
 
 
-function randomQuiz(){
-    rndmInex=newRamdon(allQuiz.length);
-    return createCont (allQuiz[rndmInex].id,allQuiz[rndmInex].question,allQuiz[rndmInex].answer);
+function randomQuiz(entorno) {
+    entorno.rndmInex = newRamdon(entorno.allQuiz.length);
+    return createCont(entorno.allQuiz[entorno.rndmInex].id,
+        entorno.allQuiz[entorno.rndmInex].question,
+        entorno.allQuiz[entorno.rndmInex].answer);
 }
 
-function createCont(id,question,answer){
-    return {"id":id, "question":question,"answer":answer};
+function createCont(id, question, answer) {                         //estrucutura del objeto
+    return { "id": id, "question": question, "answer": answer };
 
 }
 // GET /quizzes/randomplay
-var score=0;
-var result=true ;
-var allQuiz=[] ;
-var rndmInex ;
-exports.randomplay = function ( req, res, next) {
-	var quiz;
-	if (! result || ! allQuiz.length){ // hemos fallado o hemos acertado todos
-      score=0;
-      while (allQuiz.length){
-        allQuiz.pop();
+//var score=0;
+// var result=true ;
+// var allQuiz=[] ;
+// var rndmInex ;
+
+exports.randomplay = function(req, res, next) {
+
+    var quiz;
+    var entorno;                                    //variable de sesión
+    if (req.session.entorno == null) {              // si no hay sesión iniciada. Inicializamos valores.
+        entorno = { 'score': 0, 'result': true, 'allQuiz': [], 'rndmInex': 0 };
+    } else {
+        entorno = req.session.entorno;  // si no mantenemos los que había
     }
-    models.Quiz.findAll()
-    .then(function(iuiz){
-      for (var i in iuiz){
-        allQuiz.push(createCont(iuiz[i].id,iuiz[i].question,iuiz[i].answer));
+
+    if (!entorno.result || !entorno.allQuiz.length) { // hemos fallado o hemos acertado todos
+
+        entorno.score = 0;                             // Puntuación a 0
+        while (entorno.allQuiz.length) {               // vamos eliminando de la base de datos
+            entorno.allQuiz.pop();
+        }
+        models.Quiz.findAll()                           //Extraemos valores de la base de datos
+            .then(function(iuiz) {
+                for (var i in iuiz) {
+                    entorno.allQuiz.push(createCont(iuiz[i].id, iuiz[i].question, iuiz[i].answer)); // y los introducimos en entorno
+                }
+                quiz = randomQuiz(entorno);                 // Generar quiz aleatorio (var=)
+                req.session.entorno = entorno;  // guardamos en sesion
+                randomRender(req, res, next, quiz);             // renderizamos
+            })
+    } else {
+        quiz = randomQuiz(entorno);                         //var
+        req.session.entorno = entorno;
+        randomRender(req, res, next, quiz);
     }
-//    console.log("i-----"+ allQuiz.length);
-  //  console.log("r-----"+randomInex);
-    randomRender(req,res,next,randomQuiz());
-})
-}else{
-  randomRender(req,res,next,randomQuiz());
-}
 
 };
 
-function randomRender (req, res ,next,quiz){
- res.render('quizzes/random_play.ejs', {
-    quiz: quiz,
-    score: score,
-    answer: quiz.answer
-});
+function randomRender(req, res, next, quiz) {
+    var entorno;
+    if (req.session.entorno == null) {
+        console.log("randomRender inesperado" + Object.keys(req.cookies));
+    } else {
+        entorno = req.session.entorno;          // Coger datos de la sesión
+    }
+    res.render('quizzes/random_play.ejs', {                 // renderizar incrustando code en quiz, score, answer
+        quiz: quiz,
+        score: entorno.score,
+        answer: quiz.answer
+    });
 }
 // GET /quizzes/randomcheck
 
-exports.randomcheck = function ( req, res, next) {
-	var answer  = req.query.answer || "";
-	result      = answer.toLowerCase().trim() === req.quiz.answer.toLowerCase().trim();
-	score       += result ? 1 :0 ;
-    if (result){
-        allQuiz.splice(rndmInex,1);
-    } 
+exports.randomcheck = function(req, res, next) {
 
-//console.log ("/////////"+answer);
-//console.log ("---------"+req.quiz.answer.toLowerCase());
-//console.log ("+++++++++"+result);
-if (allQuiz.length){
+    if (req.session.entorno == null) {
+        console.log("randomRender inesperado" + Object.keys(req.cookies));
+    } else {
+        entorno = req.session.entorno;          // coger datos de sesion || var globales 
+    }
 
-res.render('quizzes/random_result.ejs', {
-  quiz:   req.quiz,
-  score:  score,
-  answer: answer,
-  result: result	
-});
-} else {
-   res.render('quizzes/random_nomore.ejs', {score: score});
-}
+    var answer = req.query.answer || "";                    // pillar la anser de la query(url)
+    entorno.result = answer.toLowerCase().trim() === req.quiz.answer.toLowerCase().trim();
+    entorno.score += entorno.result ? 1 : 0;
+    if (entorno.result) {
+        entorno.allQuiz.splice(entorno.rndmInex, 1);        // eliminamos quiz 
+    }
+    req.session.entorno = entorno;          // actualizamos datos de sesion
+    if (entorno.allQuiz.length) {                           //mientras haya quizzes se renderiza random_result
+
+        res.render('quizzes/random_result.ejs', {
+            quiz: req.quiz,
+            score: entorno.score,
+            answer: answer,
+            result: entorno.result
+        });
+    } else {
+        res.render('quizzes/random_nomore.ejs', { score: entorno.score }); //no quizzes, ya has ganado
+    }
 };
