@@ -252,6 +252,8 @@ function randomRender(req, res, next, quiz) {
     var entorno;
     if (req.session.entorno == null) {
         console.log("randomRender inesperado" + Object.keys(req.cookies));
+        entorno = { 'score': 0, 'result': true, 'allQuiz': [], 'rndmInex': 0 };
+
     } else {
         entorno = req.session.entorno;          // Coger datos de la sesión
     }
@@ -267,6 +269,8 @@ exports.randomcheck = function(req, res, next) {
 
     if (req.session.entorno == null) {
         console.log("randomRender inesperado" + Object.keys(req.cookies));
+        entorno = { 'score': 0, 'result': true, 'allQuiz': [], 'rndmInex': 0 };
+
     } else {
         entorno = req.session.entorno;          // coger datos de sesion || var globales 
     }
