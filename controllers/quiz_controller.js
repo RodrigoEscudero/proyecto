@@ -251,7 +251,6 @@ exports.randomplay = function(req, res, next) {
 function randomRender(req, res, next, quiz) {
     var entorno;
     if (req.session.entorno == null) {
-        console.log("randomRender inesperado" + Object.keys(req.cookies));
         entorno = { 'score': 0, 'result': true, 'allQuiz': [], 'rndmInex': 0 };
 
     } else {
@@ -268,29 +267,25 @@ function randomRender(req, res, next, quiz) {
 exports.randomcheck = function(req, res, next) {
 
     if (req.session.entorno == null) {
-        console.log("randomRender inesperado" + Object.keys(req.cookies));
         entorno = { 'score': 0, 'result': true, 'allQuiz': [], 'rndmInex': 0 };
-
     } else {
         entorno = req.session.entorno;          // coger datos de sesion || var globales 
     }
-
     var answer = req.query.answer || "";                    // pillar la anser de la query(url)
     entorno.result = answer.toLowerCase().trim() === req.quiz.answer.toLowerCase().trim();
-    entorno.score += entorno.result ? 1 : 0;
+    entorno.score += entorno.result ? 1 : -entorno.score;
     if (entorno.result) {
         entorno.allQuiz.splice(entorno.rndmInex, 1);        // eliminamos quiz 
     }
     req.session.entorno = entorno;          // actualizamos datos de sesion
-    if (entorno.allQuiz.length) {                           //mientras haya quizzes se renderiza random_result
-
-        res.render('quizzes/random_result.ejs', {
-            quiz: req.quiz,
-            score: entorno.score,
-            answer: answer,
-            result: entorno.result
-        });
+    if (entorno.allQuiz.length) {           //mientras haya quizzes se renderiza random_result
+ res.render('quizzes/random_result.ejs', {
+             quiz: req.quiz,
+             score: entorno.score,
+             answer: answer,
+             result: entorno.result
+         });
     } else {
-        res.render('quizzes/random_nomore.ejs', { score: entorno.score }); //no quizzes, ya has ganado
+      res.render('quizzes/random_nomore.ejs', { score: entorno.score }); //no quizzes, ya has ganado
     }
 };
