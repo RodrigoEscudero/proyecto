@@ -1,0 +1,23 @@
+
+<h1>
+    Juego Aleatorio:
+</h1>
+
+<div>
+    Preguntas acertadas = <span id="score"><%= score %></span>
+</div>
+
+<p>
+    La respuesta <strong> <%= answer %> </strong> es <%= result ? 'Correcta' : 'Incorrecta' %>.
+</p>
+
+<p>
+    <% if (!result) { %>
+    Has fallado.
+    <a href="/quizzes"> FIN </a>
+    <% } else { %>
+    Has acertado.
+    <a href="/quizzes/randomplay"><button>Continuar jugando</button></a>
+    <% } %>
+</p>
+
