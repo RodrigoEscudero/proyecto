@@ -38,6 +38,10 @@ Quiz.hasMany(Tip);
 User.hasMany(Quiz, {foreignKey: 'AuthorId'});
 Quiz.belongsTo(User, {as: 'Author', foreignKey: 'AuthorId'});
 
+// Relacion 1 a N entre User y Tip:
+User.hasMany(Tip, {foreignKey: 'AuthorId'});
+Tip.belongsTo(User, {as: 'Author', foreignKey: 'AuthorId'});
+
 sequelize.sync()
    .then(function(){
     console.log('pues que bien');
