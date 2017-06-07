@@ -237,11 +237,7 @@ function createCont(id, question, answer) {                         //estrucutur
     return { "id": id, "question": question, "answer": answer };
 
 }
-// GET /quizzes/randomplay
-//var score=0;
-// var result=true ;
-// var allQuiz=[] ;
-// var rndmInex ;
+
 
 exports.randomplay = function(req, res, next) {
 
