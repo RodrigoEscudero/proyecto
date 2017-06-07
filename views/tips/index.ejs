@@ -3,7 +3,7 @@
      <% var tip = tips[i]; %>   
      <% var accepted = tip.accepted; %>
      <% var isAdmin = session.user && session.user.isAdmin; %>
-     <% var isQuizAuthor = session.user && quizAuthorId && quizAuthorId === session.user.id; %>
+     <% var isQuizAuthor = session.user && quizAuthorId === session.user.id; %>
 
      <% if (accepted || isAdmin || isQuizAuthor) { %>
          <li>
